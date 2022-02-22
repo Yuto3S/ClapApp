@@ -1,0 +1,10 @@
+{
+  "name": "clap_app",
+  "version": "0.1.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "smoothie": "1.19.0",
+    "socket.io": "^3.0.3",
+    "socket.io-client": "^3.0.3"
+  }
+}
