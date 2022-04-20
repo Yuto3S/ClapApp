@@ -24,6 +24,9 @@ function getWebSocketServer(){
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+    console.log(document.getElementById("online_users"));
+    document.getElementById("online_users").innerHTML = 1;
+
     const websocket = new WebSocket(getWebSocketServer());
 
     initWebSocket(websocket);
@@ -36,6 +39,8 @@ function initWebSocketMessageListeners(websocket) {
         const event = JSON.parse(data);
         if (event.action == "clap") {
             clap();
+        } else if (event.action == "update") {
+            document.getElementById("online_users").innerHTML = event.online;
         }
 
         /** Logic used on the first user initiating a new room **/

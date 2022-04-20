@@ -11,6 +11,7 @@ DEFAULT_PORT = "8001"
 
 EMITTERS = {}  # Can receive and send Clap messages to everyone
 RECEIVERS = {}  # Can only receive Clap messages
+RECEIVER_TO_EMITTER = {}
 
 
 def cleanup_room(websocket, emitters, emitter_key, receiver_key):
@@ -18,6 +19,18 @@ def cleanup_room(websocket, emitters, emitter_key, receiver_key):
     if len(EMITTERS[emitter_key]) == 0:
         del EMITTERS[emitter_key]
         del RECEIVERS[receiver_key]
+
+
+async def update_number_of_online_users(receiver_key, emitter_key=None):
+    if emitter_key is None:
+        emitter_key = RECEIVER_TO_EMITTER[receiver_key]
+
+    event = {
+        "action": "update",
+        "online": len(EMITTERS[emitter_key]) + len(RECEIVERS[receiver_key]),
+    }
+    websockets.broadcast(EMITTERS[emitter_key], json.dumps(event))
+    websockets.broadcast(RECEIVERS[receiver_key], json.dumps(event))
 
 
 async def play_sound(websocket, emitter_key, receiver_key):
@@ -31,15 +44,20 @@ async def play_sound(websocket, emitter_key, receiver_key):
 async def join_receivers(websocket, receiver_key):
     receivers = RECEIVERS[receiver_key]
     receivers.add(websocket)
+    await update_number_of_online_users(receiver_key=receiver_key)
     try:
         await websocket.wait_closed()
     finally:
         receivers.remove(websocket)
+        await update_number_of_online_users(receiver_key=receiver_key)
 
 
 async def join_emitters(websocket, emitter_key, receiver_key):
     emitters = EMITTERS[emitter_key]
     emitters.add(websocket)
+    await update_number_of_online_users(
+        receiver_key=receiver_key, emitter_key=emitter_key
+    )
     try:
         await play_sound(
             websocket=websocket, emitter_key=emitter_key, receiver_key=receiver_key
@@ -51,6 +69,9 @@ async def join_emitters(websocket, emitter_key, receiver_key):
             emitter_key=emitter_key,
             receiver_key=receiver_key,
         )
+        await update_number_of_online_users(
+            receiver_key=receiver_key, emitter_key=emitter_key
+        )
 
 
 async def start_clapping_room(websocket):
@@ -60,6 +81,7 @@ async def start_clapping_room(websocket):
     emitters = {websocket}
     EMITTERS[emitter_key] = emitters
     RECEIVERS[receiver_key] = set()
+    RECEIVER_TO_EMITTER[receiver_key] = emitter_key
 
     try:
         event = {
