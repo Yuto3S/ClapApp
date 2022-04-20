@@ -1,5 +1,4 @@
 function copyRoomLinkToClipboard(button) {
-    console.log("click");
     var clapper_key = document.getElementById(button.id + "_link");
     navigator.clipboard.writeText(clapper_key.href);
     var tooltip = document.getElementById(button.id + "Tooltip");
@@ -25,13 +24,16 @@ window.addEventListener("DOMContentLoaded", () => {
 function initWebSocketMessageListeners(websocket) {
     websocket.addEventListener("message", ({ data }) => {
         const event = JSON.parse(data);
+        console.log(event);
         if (event.action == "clap") {
             console.log("clap");
             document.getElementById("clapping1").play();
         }
+
+        /** Logic used on the first user initiating a new room **/
         if (event.emitter != undefined) {
-            console.log("joining " + event.emitter);
-            document.querySelector(".emitter").href = "?emitter=" + event.emitter;
+            document.querySelector(".emitter").href = "?emitter=" + event.emitter + "&receiver=" + event.receiver;
+            document.querySelector(".receiver").href = "?receiver=" + event.receiver;
         }
     })
 }
@@ -43,11 +45,24 @@ function initWebSocket(websocket) {
             type: "init",
         }
 
+        /** Logic used whenever a user joins a room from a specific URL **/
         const params = new URLSearchParams(window.location.search);
+        console.log(params.values());
         if (params.has("emitter")) {
-            event.emitter = params.get("emitter")
+            event.emitter = params.get("emitter");
+            event.receiver = params.get("receiver");
+            document.querySelector(".emitter").href = "?emitter=" + event.emitter + "&receiver=" + event.receiver;
+            document.querySelector(".receiver").href = "?receiver=" + event.receiver;
+        } else if (params.has("receiver")) {
+            event.receiver = params.get("receiver");
+            document.querySelector(".receiver").href = "?receiver=" + event.receiver;
+
+            /** A receiver can't play sound or invite emitters, so we hide those buttons **/
+            var soundButton = document.getElementById("clapp");
+            var emitterButton = document.getElementById("emitter");
+            soundButton.style.display = "none";
+            emitterButton.style.display = "none";
         }
-        document.querySelector(".emitter").href = "?emitter=" + event.emitter;
         console.log(event);
         websocket.send(JSON.stringify(event));
     });
