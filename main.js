@@ -13,6 +13,7 @@ function hideTooltip(button) {
 }
 
 function getWebSocketServer(){
+    console.log(window.location.host)
     if (window.location.host === "yuto3s.github.io") {
         return "wss://yuto3s-clapapp.herokuapp.com";
     } else if (window.location.host === "localhost:8000") {
@@ -23,7 +24,7 @@ function getWebSocketServer(){
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    const websocket = new WebSocket(getWebSocketServer());
+    const websocket = new WebSocket("wss://yuto3s-clapapp.herokuapp.com");
 
     initWebSocket(websocket);
     initWebSocketMessageListeners(websocket);
