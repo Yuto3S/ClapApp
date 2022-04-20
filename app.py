@@ -43,12 +43,11 @@ async def play_sound(user, room):
     async for message in user.get_websocket():
         message_dict = json.loads(message)
         if message_dict["action"] == "clap":
-            websockets.broadcast(
-                [user.get_websocket() for user in room.get_emitters()], message
-            )
-            websockets.broadcast(
-                [user.get_websocket() for user in room.get_receivers()], message
-            )
+            users = [
+                user.get_websocket()
+                for user in room.get_emitters().union(room.get_receivers())
+            ]
+            websockets.broadcast(users, message)
         elif message_dict["action"] == "update_name":
             user.username = message_dict["username"]
             await update_number_of_online_users(room)
@@ -66,7 +65,11 @@ async def join_receivers(websocket, receiver_key, username):
     room.add_receiver(receiver_key=receiver_key, user=user)
     await update_number_of_online_users(room=room)
     try:
-        await websocket.wait_closed()
+        async for message in user.get_websocket():
+            message_dict = json.loads(message)
+            if message_dict["action"] == "update_name":
+                user.username = message_dict["username"]
+                await update_number_of_online_users(room)
     finally:
         await user.get_websocket().close()
         room.remove_receiver(user=user)
