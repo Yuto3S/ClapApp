@@ -1,105 +1,123 @@
 import asyncio
 import os
-import secrets
 import signal
 import json
 
 import websockets
 
+from room import Room
+from user import User
+
 PORT = "PORT"
 DEFAULT_PORT = "8001"
 
-EMITTERS = {}  # Can receive and send Clap messages to everyone
-RECEIVERS = {}  # Can only receive Clap messages
-RECEIVER_TO_EMITTER = {}
+ROOMS = {}
 
 
-def cleanup_room(websocket, emitters, emitter_key, receiver_key):
-    emitters.remove(websocket)
-    if len(EMITTERS[emitter_key]) == 0:
-        del EMITTERS[emitter_key]
-        del RECEIVERS[receiver_key]
-
-
-async def update_number_of_online_users(receiver_key, emitter_key=None):
-    if emitter_key is None:
-        emitter_key = RECEIVER_TO_EMITTER[receiver_key]
+async def update_number_of_online_users(room):
+    all_users = room.get_emitters().union(room.get_receivers())
 
     event = {
         "action": "update",
-        "online": len(EMITTERS[emitter_key]) + len(RECEIVERS[receiver_key]),
+        "online": len(all_users),
+        "usernames": [
+            {"name": user.get_username()}
+            for user in room.get_emitters().union(room.get_receivers())
+        ],
     }
-    websockets.broadcast(EMITTERS[emitter_key], json.dumps(event))
-    websockets.broadcast(RECEIVERS[receiver_key], json.dumps(event))
+    websockets.broadcast(
+        [user.get_websocket() for user in all_users], json.dumps(event)
+    )
 
 
-async def play_sound(websocket, emitter_key, receiver_key):
-    async for message in websocket:
+async def maybe_delete_room(room):
+    if len(room.get_emitters()) == 0:
+        receivers = [user.get_websocket() for user in room.get_receivers()]
+        for receiver in receivers:
+            await receiver.close()
+
+        del ROOMS[room.receiver_key]
+
+
+async def play_sound(user, room):
+    async for message in user.get_websocket():
         message_dict = json.loads(message)
-        assert message_dict["action"] == "clap"
-        websockets.broadcast(EMITTERS[emitter_key], message)
-        websockets.broadcast(RECEIVERS[receiver_key], message)
+        if message_dict["action"] == "clap":
+            websockets.broadcast(
+                [user.get_websocket() for user in room.get_emitters()], message
+            )
+            websockets.broadcast(
+                [user.get_websocket() for user in room.get_receivers()], message
+            )
+        elif message_dict["action"] == "update_name":
+            user.username = message_dict["username"]
+            await update_number_of_online_users(room)
 
 
-async def join_receivers(websocket, receiver_key):
-    receivers = RECEIVERS[receiver_key]
-    receivers.add(websocket)
-    await update_number_of_online_users(receiver_key=receiver_key)
+async def join_receivers(websocket, receiver_key, username):
+    try:
+        room = ROOMS[receiver_key]
+    except KeyError:
+        await websocket.close()
+        return
+
+    user = User(websocket=websocket, username=username)
+
+    room.add_receiver(receiver_key=receiver_key, user=user)
+    await update_number_of_online_users(room=room)
     try:
         await websocket.wait_closed()
     finally:
-        receivers.remove(websocket)
-        await update_number_of_online_users(receiver_key=receiver_key)
+        await user.get_websocket().close()
+        room.remove_receiver(user=user)
+        await update_number_of_online_users(room=room)
 
 
-async def join_emitters(websocket, emitter_key, receiver_key):
-    emitters = EMITTERS[emitter_key]
-    emitters.add(websocket)
-    await update_number_of_online_users(
-        receiver_key=receiver_key, emitter_key=emitter_key
-    )
+async def join_emitters(websocket, emitter_key, receiver_key, username):
+    try:
+        room = ROOMS[receiver_key]
+    except KeyError:
+        await websocket.close()
+        return
+
+    user = User(websocket=websocket, username=username)
+
+    room.add_emitter(emitter_key=emitter_key, user=user)
+    await update_number_of_online_users(room=room)
     try:
         await play_sound(
-            websocket=websocket, emitter_key=emitter_key, receiver_key=receiver_key
+            user=user,
+            room=room,
         )
     finally:
-        cleanup_room(
-            websocket=websocket,
-            emitters=emitters,
-            emitter_key=emitter_key,
-            receiver_key=receiver_key,
-        )
-        await update_number_of_online_users(
-            receiver_key=receiver_key, emitter_key=emitter_key
-        )
+        await user.get_websocket().close()
+        room.remove_emitter(user=user)
+        await update_number_of_online_users(room=room)
+        await maybe_delete_room(room=room)
 
 
-async def start_clapping_room(websocket):
-    emitter_key = secrets.token_urlsafe(12)
-    receiver_key = secrets.token_urlsafe(12)
-
-    emitters = {websocket}
-    EMITTERS[emitter_key] = emitters
-    RECEIVERS[receiver_key] = set()
-    RECEIVER_TO_EMITTER[receiver_key] = emitter_key
+async def start_clapping_room(websocket, username):
+    room = Room()
+    user = User(websocket=websocket, username=username)
+    room.add_emitter(emitter_key=room.emitter_key, user=user)
+    ROOMS[room.receiver_key] = room
 
     try:
         event = {
             "type": "init",
-            "emitter": emitter_key,
-            "receiver": receiver_key,
+            "emitter": room.emitter_key,
+            "receiver": room.receiver_key,
         }
         await websocket.send(json.dumps(event))
         await play_sound(
-            websocket=websocket, emitter_key=emitter_key, receiver_key=receiver_key
+            user=user,
+            room=room,
         )
     finally:
-        cleanup_room(
-            websocket=websocket,
-            emitters=emitters,
-            emitter_key=emitter_key,
-            receiver_key=receiver_key,
-        )
+        await user.get_websocket().close()
+        room.remove_emitter(user=user)
+        await update_number_of_online_users(room=room)
+        await maybe_delete_room(room=room)
 
 
 async def handler(websocket):
@@ -112,11 +130,16 @@ async def handler(websocket):
             websocket=websocket,
             emitter_key=event["emitter"],
             receiver_key=event["receiver"],
+            username=event["username"],
         )
     if "receiver" in event:
-        await join_receivers(websocket=websocket, receiver_key=event["receiver"])
+        await join_receivers(
+            websocket=websocket,
+            receiver_key=event["receiver"],
+            username=event["username"],
+        )
     else:
-        await start_clapping_room(websocket=websocket)
+        await start_clapping_room(websocket=websocket, username=event["username"])
 
 
 async def main():

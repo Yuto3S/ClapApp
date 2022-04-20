@@ -6,29 +6,39 @@
         <link rel="stylesheet" href="main.css">
     </head>
     <body>
-        <div style="color:blue; text-align:center;">
-            There is currently <span id="online_users"></span> online user(s).
-        </div>
         <div id="clapp">
             <audio preload="auto" id="clapping1" src="applause-2.mp3"></audio>
             <button class="block">Play Sound</button>
         </div>
+
+        <div style="color:blue; text-align:center;">
+            <div>
+                Username: <input type="text" id="username" name="username">
+                <button class="block" id="update_user_name">
+                    Update user name
+                </button>
+            </div>
+
+            There is currently <span id="online_users">1</span> online user(s).
+
+            <ul style="text-align: left" id="online_users_list">
+            </ul>
+        </div>
         <!-- The text field -->
 
-        <div class="tooltip fullwidth">
+        <div class="tooltip">
             <button onclick="copyRoomLinkToClipboard(this)" onmouseout="hideTooltip(this)" class="block" id="emitter">
                 <span class="tooltiptext" id="emitterTooltip"></span>
                 Copy emitter room invitation
             </button>
         </div>
 
-        <div class="tooltip fullwidth">
+        <div class="tooltip">
             <button onclick="copyRoomLinkToClipboard(this)" onmouseout="hideTooltip(this)" class="block" id="receiver">
                 <span class="tooltiptext" id="receiverTooltip"></span>
                 Copy receiver room invitation
             </button>
         </div>
-
 
         <a class="emitter" id="emitter_link"></a>
         <a class="receiver" id="receiver_link"></a>
