@@ -8,12 +8,12 @@
     <body>
         <div id="clapp">
             <audio preload="auto" id="clapping1" src="clapping.mp3"></audio>
-            <a id="testonclick">Play 5-sec sound on single channel</a>
+            <button class="block">Play Sound</button>
         </div>
         <!-- The text field -->
 
-        <div class="tooltip">
-            <button onclick="copyRoomLinkToClipboard()" onmouseout="showClipboardLink()">
+        <div class="tooltip fullwidth">
+            <button onclick="copyRoomLinkToClipboard()" onmouseout="showClipboardLink()" class="block">
                 <span class="tooltiptext" id="myTooltip">Room invitation link</span>
                 Copy room invitation
             </button>

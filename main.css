@@ -1,3 +1,23 @@
+body {
+    background-color: black;
+}
+
+.block {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: blue;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 1%;
+}
+
+.fullwidth {
+    width: 100%;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -5,7 +25,6 @@
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 140px;
   background-color: #555;
   color: #fff;
   text-align: center;
