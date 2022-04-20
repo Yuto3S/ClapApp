@@ -12,8 +12,17 @@ function hideTooltip(button) {
     tooltip.classList.remove("show_tool_tip");
 }
 
+function getWebSocketServer(){
+    if (window.location.host === "yuto3s.github.io") {
+        return "wss://yuto3s-clapapp.herokuapp.com";
+    } else if (window.location.host === "localhost:8000") {
+        return "ws://localhost:8001";
+    } else {
+        throw new Error(`Unsupported host: ${window.location.host}`);
+    }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
-    console.log("ok");
     const websocket = new WebSocket("ws://localhost:8001");
 
     initWebSocket(websocket);
@@ -24,10 +33,8 @@ window.addEventListener("DOMContentLoaded", () => {
 function initWebSocketMessageListeners(websocket) {
     websocket.addEventListener("message", ({ data }) => {
         const event = JSON.parse(data);
-        console.log(event);
         if (event.action == "clap") {
-            console.log("clap");
-            document.getElementById("clapping1").play();
+            clap();
         }
 
         /** Logic used on the first user initiating a new room **/
@@ -79,39 +86,14 @@ function playClappInit(websocket){
     });
 }
 
-//        const promise = clapp.play();
-//        if (promise !== undefined) {
-//            promise.then(_ => {
-//                console.log("autoplay");
-//            }).catch(error => {
-//                console.log(error);
-//                var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-//                // Firefox 1.0+
-//                var isFirefox = typeof InstallTrigger !== 'undefined';
-//                // Safari 3.0+ "[object HTMLElementConstructor]"
-//                var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
-//                // Internet Explorer 6-11
-//                var isIE = /*@cc_on!@*/false || !!document.documentMode;
-//                // Edge 20+
-//                var isEdge = !isIE && !!window.StyleMedia;
-//                // Chrome 1 - 79
-//                var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
-//                // Edge (based on chromium) detection
-//                var isEdgeChromium = isChrome && (navigator.userAgent.indexOf("Edg") != -1);
-//                // Blink engine detection
-//                var isBlink = (isChrome || isOpera) && !!window.CSS;
-//
-//                var output = 'Detecting browsers by ducktyping:<hr>';
-//                output += 'isFirefox: ' + isFirefox + '<br>';
-//                output += 'isChrome: ' + isChrome + '<br>';
-//                output += 'isSafari: ' + isSafari + '<br>';
-//                output += 'isOpera: ' + isOpera + '<br>';
-//                output += 'isIE: ' + isIE + '<br>';
-//                output += 'isEdge: ' + isEdge + '<br>';
-//                output += 'isEdgeChromium: ' + isEdgeChromium + '<br>';
-//                output += 'isBlink: ' + isBlink + '<br>';
-//                console.log(output);
-//                console.log("Please enable autoplay of sounds")
-//            });
-//        }
-//}
+function clap(){
+    console.log("clap");
+    const promise = document.getElementById("clapping1").play();
+    if (promise !== undefined) {
+        promise.then(_ => {
+            console.log("autoplay");
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
