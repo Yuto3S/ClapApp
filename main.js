@@ -1,5 +1,15 @@
-const audio = new Audio('clapping.mp3');
+function copyRoomLinkToClipboard() {
+    var active_key = document.getElementById("active_link");
+    navigator.clipboard.writeText(active_key.href);
+    var tooltip = document.getElementById("myTooltip");
+    tooltip.innerHTML = "Copied room invitation: " + active_key.href;
+    console.log(active_key.href);
+}
 
+function showClipboardLink() {
+  var tooltip = document.getElementById("myTooltip");
+  tooltip.innerHTML = "Copy room invitation to clipboard";
+}
 
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket("ws://localhost:8001");
@@ -34,6 +44,7 @@ function initWebSocket(websocket) {
         if (params.has("active")) {
             event.active = params.get("active")
         }
+        document.querySelector(".active").href = "?active=" + event.active;
         console.log(event);
         websocket.send(JSON.stringify(event));
     });

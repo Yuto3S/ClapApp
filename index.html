@@ -3,12 +3,21 @@
     <head>
         <title>ClapApp</title>
         <script type = "text/javascript" src="main.js"></script>
+        <link rel="stylesheet" href="main.css">
     </head>
     <body>
         <div id="clapp">
             <audio preload="auto" id="clapping1" src="clapping.mp3"></audio>
             <a id="testonclick">Play 5-sec sound on single channel</a>
         </div>
-        <a class="active">Active</a>
+        <!-- The text field -->
+
+        <div class="tooltip">
+            <button onclick="copyRoomLinkToClipboard()" onmouseout="showClipboardLink()">
+                <span class="tooltiptext" id="myTooltip">Room invitation link</span>
+                Copy room invitation
+            </button>
+        </div>
+        <a class="active" id="active_link"></a>
     </body>
 </html>
