@@ -10,34 +10,37 @@ PORT = "PORT"
 DEFAULT_PORT = "8001"
 
 ACTIVE_CLAPPERS = {}  # Can receive and send Clapp messages to everyone
-PASSIVE_CLAPPERS = {}  # Can only receive Clapp messages
+
+
+def cleanup_room(websocket, active_clappers, active_key):
+    active_clappers.remove(websocket)
+    if len(ACTIVE_CLAPPERS[active_key]) == 0:
+        del ACTIVE_CLAPPERS[active_key]
 
 
 async def play_sound(websocket, active_key):
     async for message in websocket:
-        message = json.loads(message)
-        print(message)
-        event = {"action": "clap"}
-        print(f"websocket {id(websocket)}, length: {len(ACTIVE_CLAPPERS[active_key])}")
-        websockets.broadcast(ACTIVE_CLAPPERS[active_key], json.dumps(event))
+        message_dict = json.loads(message)
+        assert message_dict["action"] == "clap"
+        websockets.broadcast(ACTIVE_CLAPPERS[active_key], message)
 
 
-async def join_active(websocket, active_key):
+async def join_active_clapping_room(websocket, active_key):
     active_clappers = ACTIVE_CLAPPERS[active_key]
     active_clappers.add(websocket)
     try:
-        await play_sound(websocket, active_key)
+        await play_sound(websocket=websocket, active_key=active_key)
     finally:
-        active_clappers.remove(websocket)
-        if len(ACTIVE_CLAPPERS[active_key]) == 0:
-            del ACTIVE_CLAPPERS[active_key]
+        cleanup_room(
+            websocket=websocket, active_clappers=active_clappers, active_key=active_key
+        )
 
 
-async def start(websocket):
+async def start_clapping_room(websocket):
     active_key = secrets.token_urlsafe(12)
 
-    ACTIVE_CLAPPERS[active_key] = {websocket}
-    active_clappers = ACTIVE_CLAPPERS[active_key]
+    active_clappers = {websocket}
+    ACTIVE_CLAPPERS[active_key] = active_clappers
 
     try:
         event = {
@@ -45,23 +48,22 @@ async def start(websocket):
             "active": active_key,
         }
         await websocket.send(json.dumps(event))
-        await play_sound(websocket, active_key)
+        await play_sound(websocket=websocket, active_key=active_key)
     finally:
-        active_clappers.remove(websocket)
-        if len(ACTIVE_CLAPPERS[active_key]) == 0:
-            del ACTIVE_CLAPPERS[active_key]
+        cleanup_room(
+            websocket=websocket, active_clappers=active_clappers, active_key=active_key
+        )
 
 
 async def handler(websocket):
     message = await websocket.recv()
     event = json.loads(message)
-    print(event)
     assert event["type"] == "init"
 
     if "active" in event:
-        await join_active(websocket, event["active"])
+        await join_active_clapping_room(websocket=websocket, active_key=event["active"])
     else:
-        await start(websocket)
+        await start_clapping_room(websocket=websocket)
 
 
 async def main():

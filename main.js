@@ -3,23 +3,28 @@ const audio = new Audio('clapping.mp3');
 
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket("ws://localhost:8001");
-    websocket.addEventListener("message", ({data}) => {
+
+    initWebSocket(websocket);
+    initWebSocketMessageListeners(websocket);
+    playClappInit(websocket);
+});
+
+function initWebSocketMessageListeners(websocket) {
+    websocket.addEventListener("message", ({ data }) => {
         const event = JSON.parse(data);
-        console.log(event);
-        console.log("cool");
-        if(event.active != undefined) {
+        if (event.action == "clap") {
+            console.log("clap");
+            document.getElementById("clapping1").play();
+        }
+        if (event.active != undefined) {
+            console.log("joining " + event.active);
             document.querySelector(".active").href = "?active=" + event.active;
         }
     })
+}
 
-    const clapp = document.getElementById('clapp');
-    console.log(clapp);
-    initClappers(websocket);
-    playClappInit(websocket, clapp);
-    playClappPassive(websocket);
-});
 
-function initClappers(websocket) {
+function initWebSocket(websocket) {
     websocket.addEventListener("open", () => {
         const event = {
             type: "init",
@@ -34,20 +39,12 @@ function initClappers(websocket) {
     });
 }
 
-function playClappPassive(websocket){
-    websocket.addEventListener("message", ({ data }) => {
-        const event = JSON.parse(data);
-        if (event.action == "clap") {
-            document.getElementById("clapping1").play();
-        }
-    })
-}
-
-function playClappInit(websocket, clapp){
+function playClappInit(websocket){
+    const clapp = document.getElementById('clapp');
     clapp.addEventListener("click", ({ target }) => {
         console.log("click");
         const event = {
-            type: "clap",
+            action: "clap",
         }
         websocket.send(JSON.stringify(event));
     });
