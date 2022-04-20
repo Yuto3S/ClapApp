@@ -9,49 +9,54 @@ import websockets
 PORT = "PORT"
 DEFAULT_PORT = "8001"
 
-ACTIVE_CLAPPERS = {}  # Can receive and send Clapp messages to everyone
+EMITTERS = {}  # Can receive and send Clapp messages to everyone
+RECEIVERS = {}
 
 
-def cleanup_room(websocket, active_clappers, active_key):
-    active_clappers.remove(websocket)
-    if len(ACTIVE_CLAPPERS[active_key]) == 0:
-        del ACTIVE_CLAPPERS[active_key]
+def cleanup_room(websocket, active_emitters, emitter_key):
+    active_emitters.remove(websocket)
+    if len(EMITTERS[emitter_key]) == 0:
+        del EMITTERS[emitter_key]
 
 
-async def play_sound(websocket, active_key):
+async def play_sound(websocket, emitter_key):
     async for message in websocket:
         message_dict = json.loads(message)
         assert message_dict["action"] == "clap"
-        websockets.broadcast(ACTIVE_CLAPPERS[active_key], message)
+        websockets.broadcast(EMITTERS[emitter_key], message)
 
 
-async def join_active_clapping_room(websocket, active_key):
-    active_clappers = ACTIVE_CLAPPERS[active_key]
-    active_clappers.add(websocket)
+async def join_active_clapping_room(websocket, emitter_key):
+    active_emitters = EMITTERS[emitter_key]
+    active_emitters.add(websocket)
     try:
-        await play_sound(websocket=websocket, active_key=active_key)
+        await play_sound(websocket=websocket, emitter_key=emitter_key)
     finally:
         cleanup_room(
-            websocket=websocket, active_clappers=active_clappers, active_key=active_key
+            websocket=websocket,
+            active_emitters=active_emitters,
+            emitter_key=emitter_key,
         )
 
 
 async def start_clapping_room(websocket):
-    active_key = secrets.token_urlsafe(12)
+    emitter_key = secrets.token_urlsafe(12)
 
-    active_clappers = {websocket}
-    ACTIVE_CLAPPERS[active_key] = active_clappers
+    active_emitters = {websocket}
+    EMITTERS[emitter_key] = active_emitters
 
     try:
         event = {
             "type": "init",
-            "active": active_key,
+            "emitter": emitter_key,
         }
         await websocket.send(json.dumps(event))
-        await play_sound(websocket=websocket, active_key=active_key)
+        await play_sound(websocket=websocket, emitter_key=emitter_key)
     finally:
         cleanup_room(
-            websocket=websocket, active_clappers=active_clappers, active_key=active_key
+            websocket=websocket,
+            active_emitters=active_emitters,
+            emitter_key=emitter_key,
         )
 
 
@@ -60,8 +65,10 @@ async def handler(websocket):
     event = json.loads(message)
     assert event["type"] == "init"
 
-    if "active" in event:
-        await join_active_clapping_room(websocket=websocket, active_key=event["active"])
+    if "emitter" in event:
+        await join_active_clapping_room(
+            websocket=websocket, emitter_key=event["emitter"]
+        )
     else:
         await start_clapping_room(websocket=websocket)
 

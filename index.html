@@ -12,12 +12,22 @@
         </div>
         <!-- The text field -->
 
-        <div class="tooltip fullwidth">
-            <button onclick="copyRoomLinkToClipboard()" onmouseout="showClipboardLink()" class="block">
-                <span class="tooltiptext" id="myTooltip">Room invitation link</span>
-                Copy room invitation
+        <div class="tooltip fullwidth"">
+            <button onclick="copyRoomLinkToClipboard(this)" onmouseout="hideTooltip(this)" class="block" id="emitter">
+                <span class="tooltiptext" id="emitterTooltip"></span>
+                Copy emitter room invitation
             </button>
         </div>
-        <a class="active" id="active_link"></a>
+
+        <div class="tooltip fullwidth">
+            <button onclick="copyRoomLinkToClipboard(this)" onmouseout="hideTooltip(this)" class="block" id="receiver">
+                <span class="tooltiptext" id="receiverTooltip"></span>
+                Copy receiver room invitation
+            </button>
+        </div>
+
+
+        <a class="emitter" id="emitter_link"></a>
+        <a class="receiver" id="receiver_link"></a>
     </body>
 </html>

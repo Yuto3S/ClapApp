@@ -1,17 +1,20 @@
-function copyRoomLinkToClipboard() {
-    var active_key = document.getElementById("active_link");
-    navigator.clipboard.writeText(active_key.href);
-    var tooltip = document.getElementById("myTooltip");
-    tooltip.innerHTML = "Copied room invitation: " + active_key.href;
-    console.log(active_key.href);
+function copyRoomLinkToClipboard(button) {
+    console.log("click");
+    var clapper_key = document.getElementById(button.id + "_link");
+    navigator.clipboard.writeText(clapper_key.href);
+    var tooltip = document.getElementById(button.id + "Tooltip");
+    tooltip.innerHTML = "Copied room invitation: " + clapper_key.href;
+    tooltip.classList.add("show_tool_tip");
+    console.log(clapper_key.href);
 }
 
-function showClipboardLink() {
-  var tooltip = document.getElementById("myTooltip");
-  tooltip.innerHTML = "Copy room invitation to clipboard";
+function hideTooltip(button) {
+    var tooltip = document.getElementById(button.id + "Tooltip");
+    tooltip.classList.remove("show_tool_tip");
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+    console.log("ok");
     const websocket = new WebSocket("ws://localhost:8001");
 
     initWebSocket(websocket);
@@ -26,9 +29,9 @@ function initWebSocketMessageListeners(websocket) {
             console.log("clap");
             document.getElementById("clapping1").play();
         }
-        if (event.active != undefined) {
-            console.log("joining " + event.active);
-            document.querySelector(".active").href = "?active=" + event.active;
+        if (event.emitter != undefined) {
+            console.log("joining " + event.emitter);
+            document.querySelector(".emitter").href = "?emitter=" + event.emitter;
         }
     })
 }
@@ -41,10 +44,10 @@ function initWebSocket(websocket) {
         }
 
         const params = new URLSearchParams(window.location.search);
-        if (params.has("active")) {
-            event.active = params.get("active")
+        if (params.has("emitter")) {
+            event.emitter = params.get("emitter")
         }
-        document.querySelector(".active").href = "?active=" + event.active;
+        document.querySelector(".emitter").href = "?emitter=" + event.emitter;
         console.log(event);
         websocket.send(JSON.stringify(event));
     });
@@ -59,6 +62,7 @@ function playClappInit(websocket){
         }
         websocket.send(JSON.stringify(event));
     });
+}
 
 //        const promise = clapp.play();
 //        if (promise !== undefined) {
@@ -95,4 +99,4 @@ function playClappInit(websocket){
 //                console.log("Please enable autoplay of sounds")
 //            });
 //        }
-}
+//}

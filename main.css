@@ -1,5 +1,12 @@
 body {
     background-color: black;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+   transform: translate(-50%, -50%);
+
 }
 
 .block {
@@ -22,6 +29,12 @@ body {
   position: relative;
   display: inline-block;
 }
+
+.show_tool_tip {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 
 .tooltip .tooltiptext {
   visibility: hidden;
@@ -48,9 +61,4 @@ body {
   border-width: 5px;
   border-style: solid;
   border-color: #555 transparent transparent transparent;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
 }
