@@ -35,8 +35,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function initWebSocketMessageListeners(websocket) {
-    websocket.addEventListener("message", ({ data }) => {
-        const event = JSON.parse(data);
+    websocket.onmessage = function(data) {
+        const event = JSON.parse(data.data);
         if (event.action == "clap") {
             clap();
         } else if (event.action == "update") {
@@ -48,12 +48,17 @@ function initWebSocketMessageListeners(websocket) {
             document.querySelector(".emitter").href = "?emitter=" + event.emitter + "&receiver=" + event.receiver;
             document.querySelector(".receiver").href = "?receiver=" + event.receiver;
         }
-    })
+    };
+
+    websocket.onclose = function(event) {
+        console.log("WebSocket connection was closed")
+        console.log(event);
+    };
 }
 
 
 function initWebSocket(websocket) {
-    websocket.addEventListener("open", () => {
+    websocket.onopen = function() {
         const event = {
             type: "init",
         }
@@ -78,7 +83,7 @@ function initWebSocket(websocket) {
         }
         console.log(event);
         websocket.send(JSON.stringify(event));
-    });
+    };
 }
 
 function playClappInit(websocket){
