@@ -24,7 +24,7 @@ function getWebSocketServer(){
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    const websocket = new WebSocket("wss://yuto3s-clapapp.herokuapp.com");
+    const websocket = new WebSocket(getWebSocketServer());
 
     initWebSocket(websocket);
     initWebSocketMessageListeners(websocket);
