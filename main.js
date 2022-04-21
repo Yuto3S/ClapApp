@@ -124,8 +124,8 @@ function updateNameInit(websocket){
         username: userName.value,
     };
 
-    userName.addEventListener("change", ({ target }) => {
-        event.username = userName.value;
+    document.getElementById('username').addEventListener("change", ({ target }) => {
+        event.username = document.getElementById('username').value;
         websocket.send(JSON.stringify(event));
     })
 
