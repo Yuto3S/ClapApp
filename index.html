@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta charset="UTF-8">
         <title>ClapApp</title>
         <script type = "text/javascript" src="main.js"></script>
+        <script language="javascript"  src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
         <link href="./dist/output.css" rel="stylesheet">
     </head>
     <body class="bg-sky-900 text-white">
@@ -44,15 +46,37 @@
                 </div>
             </div>
             <div class="bg-sky-600 p-2">
-                <h1 class="text-2xl font-semibold mb-2 text-center">Sounds to play</h1>
-                <div class="grid grid-cols-4 gap-3">
-                    <div>
-                        <button id="clapp" class="bg-sky-500 hover:bg-sky-700 px-5 py-2 text-sm leading-5 rounded-full font-semibold text-white">
-                            <audio preload="auto" id="clapping1" src="applause-2.mp3"></audio>
-                            Clap
-                        </button>
-                    </div>
+                <h1 class="text-2xl font-semibold mb-2 text-center">Click on any of those sounds to play it for everyone!</h1>
+                <div class="grid grid-cols-4 gap-3" id="sounds">
                 </div>
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        var sounds = [
+                            { id: "clap", text: "Clap", emoji: "👏"},
+                            { id: "surprise", text: "Surprise", emoji: "❗️"},
+                            { id: "glass_breaking", text: "Glass Breaking", emoji: "🍸"},
+                            { id: "wrong_answer", text: "Wrong Answer", emoji: "❌"},
+                            { id: "camera_shutter", text: "Camera Shutter", emoji: "📸"},
+                            { id: "door", text: "Door", emoji:"🚪"},
+                            { id: "fire", text: "Fire", emoji:"🔥"},
+                            { id: "seagull", text: "Seagull", emoji: "🌊🐦"},
+                            { id: "war_horn", text: "War Horn", emoji:"📯"},
+                            { id: "water_cup", text: "Water Cup", emoji:"🥤💧"},
+                        ]
+
+                        sounds_html = "";
+
+                        sounds.forEach(function(sound){
+                            sounds_html += `
+                                <button id="${sound.id}" class="bg-sky-500 hover:bg-sky-700 px-5 py-2 text-sm leading-5 rounded-full font-semibold text-white">
+                                    <audio preload="auto" id="${sound.id}_audio" src="./sounds/${sound.id}.mp3"></audio>
+                                    ${sound.text} ${sound.emoji}
+                                </button>`
+                        });
+                        console.log(sounds_html);
+                        $("#sounds").html(sounds_html);
+                    });
+                </script>
             </div>
         </div>
 
@@ -62,5 +86,7 @@
 
         <a class="emitter" id="emitter_link"></a>
         <a class="receiver" id="receiver_link"></a>
+
+        Credits to https://pixabay.com/de/sound-effects/ for the sounds.
     </body>
 </html>

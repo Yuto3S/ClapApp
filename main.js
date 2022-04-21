@@ -40,7 +40,7 @@ function initWebSocketMessageListeners(websocket) {
     websocket.onmessage = function(data) {
         const event = JSON.parse(data.data);
         if (event.action == "clap") {
-            clap();
+            clap(event.sound);
         } else if (event.action == "update") {
             document.getElementById("online_users").innerHTML = event.online;
             updateOnlineUsers(event.usernames);
@@ -94,7 +94,7 @@ function initWebSocket(websocket) {
             document.querySelector(".receiver").href = "?receiver=" + event.receiver;
 
             /** A receiver can't play sound or invite emitters, so we hide those buttons **/
-            var soundButton = document.getElementById("clapp");
+            var soundButton = document.getElementById("clap");
             var emitterArea = document.getElementById("emitterArea");
             soundButton.style.display = "none";
             emitterArea.style.display = "none";
@@ -107,14 +107,16 @@ function initWebSocket(websocket) {
 }
 
 function playClappInit(websocket){
-    const clapp = document.getElementById('clapp');
-    clapp.addEventListener("click", ({ target }) => {
-        console.log("click");
-        const event = {
-            action: "clap",
-        }
-        websocket.send(JSON.stringify(event));
-    });
+    const sounds = document.getElementById('sounds').children;
+    for (let sound of sounds) {
+        sound.addEventListener("click", ({ target }) => {
+            const event = {
+                action: "clap",
+                sound: target.id,
+            }
+            websocket.send(JSON.stringify(event));
+        });
+    }
 }
 
 function updateNameInit(websocket){
@@ -136,9 +138,9 @@ function updateNameInit(websocket){
     }, 2000);
 }
 
-function clap(){
-    console.log("clap");
-    const promise = document.getElementById("clapping1").play();
+function clap(sound){
+    console.log(sound);
+    const promise = document.getElementById(sound+"_audio").play();
     if (promise !== undefined) {
         promise.then(_ => {
             console.log("autoplay");
