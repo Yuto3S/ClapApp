@@ -131,7 +131,7 @@ function updateNameInit(websocket){
 
     setTimeout(() => {
         websocket.send(JSON.stringify(event));
-    }, 500);
+    }, 2000);
 }
 
 function clap(){
