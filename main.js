@@ -128,15 +128,19 @@ function playClappInit(websocket){
 
 function updateNameInit(websocket){
     const userName = document.getElementById('username');
-    userName.value = generateName();
+    if (localStorage.userName == undefined) {
+        localStorage.userName = generateName()
+    }
+    userName.value = localStorage.userName;
 
     var event = {
         action: "update_name",
-        username: userName.value,
+        username: localStorage.userName,
     };
 
     document.getElementById('username').addEventListener("change", ({ target }) => {
         event.username = document.getElementById('username').value;
+        localStorage.userName = event.username;
         websocket.send(JSON.stringify(event));
     })
 
