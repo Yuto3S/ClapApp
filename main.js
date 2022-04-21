@@ -143,9 +143,9 @@ function clap(sound){
     const promise = document.getElementById(sound+"_audio").play();
     if (promise !== undefined) {
         promise.then(_ => {
-            console.log("autoplay");
+            document.getElementById("error_sound").classList.add("hidden");
         }).catch(error => {
-            console.log(error);
+            document.getElementById("error_sound").classList.remove("hidden");
         });
     }
 }
