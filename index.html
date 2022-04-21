@@ -11,8 +11,8 @@
         <div class="m-auto text-center">
             <h1 class="text-5xl m-4">Clap App!</h1>
         </div>
-        <div class="columns-2 text-center mt-2 mb-2 p-2 bg-sky-800 w-full" id="invitationArea">
-            <div class="tooltip pb-1" id="emitterArea">
+        <div class="md:columns-2 text-center mt-2 mb-2 p-2 bg-sky-800 w-full" id="invitationArea">
+            <div class="tooltip pb-1 md-flex" id="emitterArea">
                 <p class="mb-2">An <span class="text-l font-semibold">Emitter</span> can play and also listen to sound.</p>
 
                 <button
@@ -24,7 +24,7 @@
                 </button>
             </div>
 
-            <div class="tooltip pb-1">
+            <div class="tooltip pb-1 md-flex">
                 <p class=" mb-2">A <span class="text-l font-semibold">Listener</span> can only listen to sound.</p>
                 <button
                     class="bg-sky-400 hover:bg-sky-600 px-10 py-5 text-sm rounded-full font-semibold text-white m-auto block p-2"
@@ -43,7 +43,7 @@
                 </a>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 gap-4">
             <div class="bg-sky-700 p-2">
                 <div class="my-4">
                     Your usename: <input class="italic text-slate-400 block bg-white border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm my-auto" type="text" name="username" id="username"/>
@@ -54,7 +54,7 @@
             </div>
             <div class="bg-sky-600 p-2">
                 <h1 class="text-2xl font-semibold mb-2 text-center" id="emitter_sound_text">Click on any of those sounds to play it for everyone!</h1>
-                <h1 class="text-2xl font-semibold mb-2 text-center" id="listener_sound_text">Wait for an emitter to play any of those sounds!</h1>
+                <h1 class="text-2xl font-semibold mb-2 text-center hidden" id="listener_sound_text">Wait for an emitter to play any of those sounds!</h1>
                 <div class="bg-rose-700 shadow shadow-slate-800 p-2 m-2 rounded-md hidden" id="error_sound">
                     The sound could not be played. Please check your browser settings.
                 </div>
