@@ -1,15 +1,16 @@
 function copyRoomLinkToClipboard(button) {
-    var clapper_key = document.getElementById(button.id + "_link");
-    navigator.clipboard.writeText(clapper_key.href);
-    var tooltip = document.getElementById(button.id + "Tooltip");
-    tooltip.innerHTML = "Copied room invitation: " + clapper_key.href;
-    tooltip.classList.add("show_tool_tip");
-    console.log(clapper_key.href);
-}
+    const buttonComponent = document.getElementById(button.id);
+    const link = document.getElementById(button.id + "_link").href;
+    navigator.clipboard.writeText(link);
+    buttonComponent.innerHTML = "Copied invitation!";
 
-function hideTooltip(button) {
-    var tooltip = document.getElementById(button.id + "Tooltip");
-    tooltip.classList.remove("show_tool_tip");
+    const animation = "animate-bounce";
+    buttonComponent.classList.add(animation);
+
+    setTimeout(() => {
+        buttonComponent.innerHTML = "Copy invitation link";
+        buttonComponent.classList.remove(animation);
+    }, 1500);
 }
 
 function getWebSocketServer(){
@@ -33,8 +34,6 @@ window.addEventListener("DOMContentLoaded", () => {
     initWebSocketMessageListeners(websocket);
     playClappInit(websocket);
     updateNameInit(websocket)
-
-    document.getElementById("username").value = generateName();
 });
 
 function initWebSocketMessageListeners(websocket) {
@@ -44,15 +43,7 @@ function initWebSocketMessageListeners(websocket) {
             clap();
         } else if (event.action == "update") {
             document.getElementById("online_users").innerHTML = event.online;
-            online_user_list = document.getElementById("online_users_list");
-            online_user_list.innerHTML = "";
-            event.usernames.forEach(function (user) {
-                let li = document.createElement('li');
-                li.innerHTML += user.name;
-
-                online_user_list.appendChild(li);
-            });
-            console.log(event);
+            updateOnlineUsers(event.usernames);
         }
 
         /** Logic used on the first user initiating a new room **/
@@ -67,6 +58,18 @@ function initWebSocketMessageListeners(websocket) {
         console.log(event);
         document.getElementById("online_users").innerHTML = 1;
     };
+}
+
+function updateOnlineUsers(onlineUserList) {
+    var result = "";
+    onlineUserList.forEach(function(user){
+        result += `
+            <div class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
+                <h3 class="text-white text-base font-medium tracking-tight">${user.name}</h3>
+            </div>`;
+    })
+    online_user_list2 = document.getElementById("online_users_2");
+    online_user_list2.innerHTML = result;
 }
 
 
@@ -113,15 +116,22 @@ function playClappInit(websocket){
 }
 
 function updateNameInit(websocket){
-    const updateName = document.getElementById('update_user_name');
-    updateName.addEventListener("click", ({ target }) => {
-        console.log("click update name");
-        const event = {
-            action: "update_name",
-            username: document.getElementById("username").value,
-        }
+    const userName = document.getElementById('username');
+    userName.value = generateName();
+
+    var event = {
+        action: "update_name",
+        username: userName.value,
+    };
+
+    userName.addEventListener("change", ({ target }) => {
+        event.username = userName.value;
         websocket.send(JSON.stringify(event));
     })
+
+    setTimeout(() => {
+        websocket.send(JSON.stringify(event));
+    }, 500);
 }
 
 function clap(){
