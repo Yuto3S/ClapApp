@@ -95,9 +95,11 @@ function initWebSocket(websocket) {
 
             /** A receiver can't play sound or invite emitters, so we hide those buttons **/
             var soundButton = document.getElementById("clapp");
-            var emitterButton = document.getElementById("emitter");
+            var emitterArea = document.getElementById("emitterArea");
             soundButton.style.display = "none";
-            emitterButton.style.display = "none";
+            emitterArea.style.display = "none";
+            var invitationArea = document.getElementById("invitationArea");
+            invitationArea.classList.remove("columns-2")
         }
         console.log(event);
         websocket.send(JSON.stringify(event));
