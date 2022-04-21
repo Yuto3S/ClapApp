@@ -25,15 +25,17 @@ function getWebSocketServer(){
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    console.log(document.getElementById("online_users"));
-    document.getElementById("online_users").innerHTML = 1;
-
     const websocket = new WebSocket(getWebSocketServer());
 
     initWebSocket(websocket);
     initWebSocketMessageListeners(websocket);
     playClappInit(websocket);
     updateNameInit(websocket)
+
+    websocket.onclose = function(event) {
+        document.getElementById("disconnected").classList.remove("hidden");
+        document.getElementById("invitationArea").classList.add("hidden");
+    };
 });
 
 function initWebSocketMessageListeners(websocket) {
@@ -42,7 +44,6 @@ function initWebSocketMessageListeners(websocket) {
         if (event.action == "clap") {
             clap(event.sound);
         } else if (event.action == "update") {
-            document.getElementById("online_users").innerHTML = event.online;
             updateOnlineUsers(event.usernames);
         }
 
@@ -51,12 +52,6 @@ function initWebSocketMessageListeners(websocket) {
             document.querySelector(".emitter").href = "?emitter=" + event.emitter + "&receiver=" + event.receiver;
             document.querySelector(".receiver").href = "?receiver=" + event.receiver;
         }
-    };
-
-    websocket.onclose = function(event) {
-        console.log("WebSocket connection was closed")
-        console.log(event);
-        document.getElementById("online_users").innerHTML = 1;
     };
 }
 
@@ -94,12 +89,24 @@ function initWebSocket(websocket) {
             document.querySelector(".receiver").href = "?receiver=" + event.receiver;
 
             /** A receiver can't play sound or invite emitters, so we hide those buttons **/
-            var soundButton = document.getElementById("clap");
+            var soundClickTextAreaEmitter = document.getElementById("emitter_sound_text");
             var emitterArea = document.getElementById("emitterArea");
-            soundButton.style.display = "none";
-            emitterArea.style.display = "none";
+            var soundClickTextAreaListener = document.getElementById("listener_sound_text");
+            soundClickTextAreaEmitter.classList.add("hidden");
+            soundClickTextAreaListener.classList.remove("hidden");
+            emitterArea.classList.add("hidden");
             var invitationArea = document.getElementById("invitationArea");
             invitationArea.classList.remove("columns-2")
+
+            var soundButtons = document.getElementById("sounds");
+            const sounds = document.getElementById('sounds').children;
+
+            for (let sound of sounds) {
+                sound.classList.remove("hover:bg-sky-700");
+                sound.classList.add("cursor-not-allowed");
+            }
+
+            console.log(soundButtons)
         }
         console.log(event);
         websocket.send(JSON.stringify(event));
