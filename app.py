@@ -82,14 +82,14 @@ async def emitter_actions(user, room):
             await update_user_data(room, message_dict)
 
 
-async def join_receivers(websocket, receiver_key, username, user_id):
+async def join_receivers(websocket, receiver_key, username, user_id, picture):
     try:
         room = ROOMS[receiver_key]
     except KeyError:
         await websocket.close()
         return
 
-    user = User(websocket=websocket, username=username, id=user_id)
+    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
 
     room.add_receiver(receiver_key=receiver_key, user=user)
     await get_all_users_data(room=room, user=user)
@@ -102,14 +102,16 @@ async def join_receivers(websocket, receiver_key, username, user_id):
         await get_all_users_data(room=room, user=user)
 
 
-async def join_emitters(websocket, emitter_key, receiver_key, username, user_id):
+async def join_emitters(
+    websocket, emitter_key, receiver_key, username, user_id, picture
+):
     try:
         room = ROOMS[receiver_key]
     except KeyError:
         await websocket.close()
         return
 
-    user = User(websocket=websocket, username=username, id=user_id)
+    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
 
     room.add_emitter(emitter_key=emitter_key, user=user)
     await get_all_users_data(room=room, user=user)
@@ -124,9 +126,9 @@ async def join_emitters(websocket, emitter_key, receiver_key, username, user_id)
         await get_all_users_data(room=room, user=user)
 
 
-async def start_clapping_room(websocket, username, user_id):
+async def start_clapping_room(websocket, username, user_id, picture):
     room = Room()
-    user = User(websocket=websocket, username=username, id=user_id)
+    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
     room.add_emitter(emitter_key=room.emitter_key, user=user)
     ROOMS[room.receiver_key] = room
 
@@ -160,6 +162,7 @@ async def handler(websocket):
             receiver_key=event["receiver"],
             username=event["username"],
             user_id=event["user_id"],
+            picture=event["picture"],
         )
     if "receiver" in event:
         await join_receivers(
@@ -167,12 +170,14 @@ async def handler(websocket):
             receiver_key=event["receiver"],
             username=event["username"],
             user_id=event["user_id"],
+            picture=event["picture"],
         )
     else:
         await start_clapping_room(
             websocket=websocket,
             username=event["username"],
             user_id=event["user_id"],
+            picture=event["picture"],
         )
 
 

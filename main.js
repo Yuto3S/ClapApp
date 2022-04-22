@@ -32,6 +32,8 @@ window.addEventListener("DOMContentLoaded", () => {
     var id = "id_" + Math.random().toString(16).slice(2)
     document.getElementById("user_id").value = id;
     console.log(id);
+    const defaultPicture = localStorage.getItem("picture") ? localStorage.getItem("picture") : "clap.png";
+    document.getElementById("currentpp").src = defaultPicture;
 
 
     initWebSocket(websocket);
@@ -54,6 +56,8 @@ function updatePictureInit(websocket){
         var reader = new FileReader();
         reader.readAsDataURL(newImage);
         reader.onload = function () {
+            localStorage.setItem("picture", reader.result)
+
             document.getElementById('currentpp').src = reader.result;
             const event = {
                 action: "update",
@@ -91,7 +95,7 @@ function initWebSocketMessageListeners(websocket) {
 
 /// TODO: refactor both updateSingleUser & updateOnlineUsers into one
 function updateSingleUser(user) {
-    var picture = user.picture != undefined ? user.picture : "clap.png";
+    const picture = user.picture != undefined ? user.picture : "clap.png";
     console.log(picture);
     document.getElementById(user.id).innerHTML = `
         <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
@@ -104,7 +108,7 @@ function updateOnlineUsers(onlineUsers) {
     console.log("update all users");
     console.log(onlineUsers);
     onlineUsers.forEach(function(user){
-    var picture = user.picture != undefined ? user.picture : "clap.png";
+        var picture = user.picture != undefined ? user.picture : "clap.png";
         result += `
             <div id="${user.id}" class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
                 <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
@@ -123,6 +127,7 @@ function initWebSocket(websocket) {
             type: "init",
             username: document.getElementById("username").value,
             user_id: document.getElementById("user_id").value,
+            picture: localStorage.getItem("picture") ? localStorage.getItem("picture") : null,
         }
 
         /** Logic used whenever a user joins a room from a specific URL **/
