@@ -53,20 +53,25 @@ function updatePictureInit(websocket){
     const user_id = document.getElementById("user_id").value;
     document.getElementById('profile_picture').addEventListener("change", ({target}) => {
         const newImage = target.files[0];
-        var reader = new FileReader();
-        reader.readAsDataURL(newImage);
-        reader.onload = function () {
-            localStorage.setItem("picture", reader.result)
+        if(newImage.size > 1024 * 1024){
+            // Do nothing
+            alert("Image is too big");
+        } else {
+            var reader = new FileReader();
+            reader.readAsDataURL(newImage);
+            reader.onload = function () {
+                localStorage.setItem("picture", reader.result)
 
-            document.getElementById('currentpp').src = reader.result;
-            const event = {
-                action: "update",
-                update: "picture",
-                picture: reader.result,
-                user_id: user_id,
-            }
-            websocket.send(JSON.stringify(event));
-        };
+                document.getElementById('currentpp').src = reader.result;
+                const event = {
+                    action: "update",
+                    update: "picture",
+                    picture: reader.result,
+                    user_id: user_id,
+                }
+                websocket.send(JSON.stringify(event));
+            };
+        }
     })
 }
 
@@ -96,7 +101,6 @@ function initWebSocketMessageListeners(websocket) {
 /// TODO: refactor both updateSingleUser & updateOnlineUsers into one
 function updateSingleUser(user) {
     const picture = user.picture != undefined ? user.picture : "clap.png";
-    console.log(picture);
     document.getElementById(user.id).innerHTML = `
         <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
         <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
