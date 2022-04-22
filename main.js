@@ -27,10 +27,18 @@ function getWebSocketServer(){
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket(getWebSocketServer());
 
+
+    const image = document.getElementById("image");
+    var id = "id_" + Math.random().toString(16).slice(2)
+    document.getElementById("user_id").value = id;
+    console.log(id);
+
+
     initWebSocket(websocket);
     initWebSocketMessageListeners(websocket);
     playClappInit(websocket);
     updateNameInit(websocket)
+    updatePictureInit(websocket);
 
     websocket.onclose = function(event) {
         document.getElementById("disconnected").classList.remove("hidden");
@@ -38,13 +46,39 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 });
 
+function updatePictureInit(websocket){
+    const profilePicture = document.getElementById("profile_picture");
+    const user_id = document.getElementById("user_id").value;
+    document.getElementById('profile_picture').addEventListener("change", ({target}) => {
+        const newImage = target.files[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(newImage);
+        reader.onload = function () {
+            document.getElementById('currentpp').src = reader.result;
+            const event = {
+                action: "update",
+                update: "picture",
+                picture: reader.result,
+                user_id: user_id,
+            }
+            websocket.send(JSON.stringify(event));
+        };
+    })
+}
+
 function initWebSocketMessageListeners(websocket) {
     websocket.onmessage = function(data) {
         const event = JSON.parse(data.data);
         if (event.action == "clap") {
             clap(event.sound);
         } else if (event.action == "update") {
-            updateOnlineUsers(event.usernames);
+            console.log("new");
+            console.log(event);
+            if (event.update == "all_users"){
+                updateOnlineUsers(event.users);
+            } else if (event.update == "single_user") {
+                updateSingleUser(event.user);
+            }
         }
 
         /** Logic used on the first user initiating a new room **/
@@ -55,12 +89,26 @@ function initWebSocketMessageListeners(websocket) {
     };
 }
 
-function updateOnlineUsers(onlineUserList) {
+/// TODO: refactor both updateSingleUser & updateOnlineUsers into one
+function updateSingleUser(user) {
+    var picture = user.picture != undefined ? user.picture : "clap.png";
+    console.log(picture);
+    document.getElementById(user.id).innerHTML = `
+        <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+        <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
+    `;
+}
+
+function updateOnlineUsers(onlineUsers) {
     var result = "";
-    onlineUserList.forEach(function(user){
+    console.log("update all users");
+    console.log(onlineUsers);
+    onlineUsers.forEach(function(user){
+    var picture = user.picture != undefined ? user.picture : "clap.png";
         result += `
-            <div class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
-                <h3 class="text-white text-base font-medium tracking-tight">${user.name}</h3>
+            <div id="${user.id}" class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
+                <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+                <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
             </div>`;
     })
     online_user_list2 = document.getElementById("online_users_2");
@@ -74,6 +122,7 @@ function initWebSocket(websocket) {
         const event = {
             type: "init",
             username: document.getElementById("username").value,
+            user_id: document.getElementById("user_id").value,
         }
 
         /** Logic used whenever a user joins a room from a specific URL **/
@@ -127,15 +176,18 @@ function playClappInit(websocket){
 }
 
 function updateNameInit(websocket){
-    const userName = document.getElementById('username');
+    const userNameInput = document.getElementById('username');
+
     if (localStorage.userName == undefined) {
         localStorage.userName = generateName()
     }
-    userName.value = localStorage.userName;
+    userNameInput.value = localStorage.userName;
 
     var event = {
-        action: "update_name",
+        action: "update",
+        update: "username",
         username: localStorage.userName,
+        user_id: document.getElementById("user_id").value,
     };
 
     document.getElementById('username').addEventListener("change", ({ target }) => {

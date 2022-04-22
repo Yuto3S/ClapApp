@@ -45,11 +45,29 @@
 
         <div class="grid lg:grid-cols-2 gap-4">
             <div class="bg-sky-700 p-2">
-                <div class="my-4">
-                    Your usename: <input class="italic text-slate-400 bg-white border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm my-auto" type="text" name="username" id="username"/>
+                <div class="bg-sky-600 p-2 rounded-md">
+                    <div class="my-4">
+                        Your usename: <input class="italic text-slate-400 bg-white border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm my-auto" type="text" name="username" id="username"/>
+                    </div>
+                    <form class="flex items-center space-x-6">
+                    Your profile picture:
+                      <div class="ml-2">
+                        <img id="currentpp" class="h-16 w-16 object-cover rounded-full" src="clap.png" alt="Current profile photo" />
+                      </div>
+                      <label class="">
+                        <input id="profile_picture" type="file" accept="image/*" class="block w-full text-sm
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:text-white
+                          file:bg-sky-400 file:hover:bg-sky-800
+                        "/>
+                      </label>
+                    </form>
                 </div>
-                <h1 class="text-2xl font-semibold mb-2 text-center">Online User(s):</h1>
-                <div class="grid grid-cols-3 gap-3" id="online_users_2">
+                <div class="bg-sky-500 p-2 mt-2 rounded-md">
+                    <h1 class="text-2xl font-semibold mb-2 text-center">Online User(s):</h1>
+                    <div class="grid grid-cols-3 gap-3" id="online_users_2">
+                    </div>
                 </div>
             </div>
             <div class="bg-sky-600 p-2">
@@ -81,7 +99,7 @@
 
                         sounds.forEach(function(sound){
                             sounds_html += `
-                                <button id="${sound.id}" class="bg-sky-500 hover:bg-sky-700 px-5 py-2 text-sm leading-5 rounded-full font-semibold text-white">
+                                <button id="${sound.id}" class="bg-sky-500 hover:bg-sky-700 px-5 py-2 text-sm leading-5 rounded-full font-semibold text-white shadow shadow-slate-800">
                                     <audio preload="auto" id="${sound.id}_audio" src="./sounds/${sound.id}.mp3"></audio>
                                     ${sound.text} ${sound.emoji}
                                 </button>`
@@ -98,6 +116,7 @@
 
         <a class="emitter" id="emitter_link"></a>
         <a class="receiver" id="receiver_link"></a>
+        <input id="user_id" class="hidden"/>
 
         Credits to https://pixabay.com/de/sound-effects/ for the sounds.
     </body>

@@ -5,17 +5,17 @@ class Room:
     def __init__(self):
         self.emitter_key = secrets.token_urlsafe(12)
         self.receiver_key = secrets.token_urlsafe(12)
-        self.emitters = set()
-        self.receivers = set()
+        self.emitters = {}
+        self.receivers = {}
 
     def add_emitter(self, emitter_key, user):
         if self.emitter_key != emitter_key:
             raise PermissionError
 
-        self.emitters.add(user)
+        self.emitters[user.get_id()] = user
 
     def remove_emitter(self, user):
-        self.emitters.remove(user)
+        del self.emitters[user.get_id()]
 
     def add_receiver(self, receiver_key, user):
         if self.receiver_key != receiver_key:
@@ -23,10 +23,17 @@ class Room:
         if len(self.emitters) == 0:
             raise PermissionError
 
-        self.receivers.add(user)
+        self.receivers[user.get_id()] = user
 
     def remove_receiver(self, user):
-        self.receivers.remove(user)
+        del self.receivers[user.get_id()]
+
+    def get_all_users(self):
+        return self.emitters | self.receivers
+
+    def get_user(self, user_id):
+        all_users = self.get_all_users()
+        return all_users.get(user_id)
 
     def get_emitters(self):
         return self.emitters
