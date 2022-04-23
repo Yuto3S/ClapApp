@@ -1,12 +1,13 @@
 import asyncio
+import json
 import os
 import signal
-import json
 
 import websockets
 
 from server.logic.emitter import join_emitters
-from server.logic.receiver import join_receivers, close_receivers_websockets
+from server.logic.receiver import close_receivers_websockets
+from server.logic.receiver import join_receivers
 from server.model.room import Room
 
 PORT = "PORT"
