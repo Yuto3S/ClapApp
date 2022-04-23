@@ -2,30 +2,24 @@ import json
 
 import websockets
 
-from server.logic.user import get_all_users_data
+from server.logic.user import add_user_to_room
+from server.logic.user import remove_user_from_room
 from server.logic.user import update_user_data
-from server.logic.user import user_disconnected
-from server.model.user import User
 
 
 async def join_emitters(websocket, room, emitter_key, username, user_id, picture):
-    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
-    room.add_emitter(emitter_key=emitter_key, user=user)
-
-    await get_all_users_data(room=room)
+    user = await add_user_to_room(
+        room=room,
+        websocket=websocket,
+        username=username,
+        user_id=user_id,
+        picture=picture,
+        emitter_key=emitter_key,
+    )
     try:
-        await emitter_actions(
-            user=user,
-            room=room,
-        )
+        await emitter_actions(user=user, room=room)
     finally:
-        await delete_emitter(room=room, user=user)
-        await get_all_users_data(room=room)
-
-        # OK - TODO: Broadcast on still present users to let them know user_id has left the room
-        # Instead of broadcasting to all users
-        # TODO: Implement frontend
-        await user_disconnected(room=room, user=user)
+        await remove_user_from_room(room=room, user=user, emitter_key=emitter_key)
 
 
 async def delete_emitter(room, user):

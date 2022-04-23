@@ -8,14 +8,19 @@ class Room:
         self.emitters = {}
         self.receivers = {}
 
+    def add_user(self, user, emitter_key=None, receiver_key=None):
+        if emitter_key:
+            self.add_emitter(user=user, emitter_key=emitter_key)
+        elif receiver_key:
+            self.add_receiver(user=user, receiver_key=receiver_key)
+        else:
+            raise KeyError
+
     def add_emitter(self, emitter_key, user):
         if self.emitter_key != emitter_key:
             raise PermissionError
 
         self.emitters[user.get_id()] = user
-
-    def remove_emitter(self, user):
-        del self.emitters[user.get_id()]
 
     def add_receiver(self, receiver_key, user):
         if self.receiver_key != receiver_key:
@@ -25,8 +30,19 @@ class Room:
 
         self.receivers[user.get_id()] = user
 
+    def remove_user(self, user, emitter_key=None, receiver_key=None):
+        if emitter_key:
+            self.remove_emitter(user=user)
+        elif receiver_key:
+            self.remove_receiver(user=user)
+        else:
+            raise KeyError
+
     def remove_receiver(self, user):
         del self.receivers[user.get_id()]
+
+    def remove_emitter(self, user):
+        del self.emitters[user.get_id()]
 
     def get_all_users(self):
         return self.emitters | self.receivers
