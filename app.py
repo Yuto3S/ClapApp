@@ -5,54 +5,14 @@ import json
 
 import websockets
 
-from events import get_all_users_event
-from events import get_single_user_update_event
-from room import Room
-from user import User
+from server.logic.emitter import join_emitters, start_clapping_room
+from server.logic.receiver import join_receivers
+from server.model.room import Room
 
 PORT = "PORT"
 DEFAULT_PORT = "8001"
 
 ROOMS = {}
-
-
-""" TODO:
-1) Single socket send the list of all the users to the new user
-2) Broadcast creation of new user to existing ones
-"""
-
-
-async def get_all_users_data(room, user):
-    all_users = room.get_all_users()
-
-    event = get_all_users_event(all_users)
-    websockets.broadcast(
-        [user.get_websocket() for user in room.get_all_users().values()],
-        json.dumps(event),
-    )
-    # await user.get_websocket().send(json.dumps(event))
-
-
-async def update_user_data(room, data):
-    user = room.get_user(data.get("user_id"))
-    match data.get("update"):
-        case "username":
-            user.update_name(data.get("username"))
-        case "picture":
-            user.update_picture(data.get("picture"))
-
-    event = get_single_user_update_event(user)
-
-    websockets.broadcast(
-        [user.get_websocket() for user in room.get_all_users().values()],
-        json.dumps(event),
-    )
-
-
-async def delete_emitter(room, user):
-    await user.get_websocket().close()
-    room.remove_emitter(user=user)
-    await maybe_delete_room(room=room)
 
 
 async def maybe_delete_room(room):
@@ -64,100 +24,21 @@ async def maybe_delete_room(room):
         del ROOMS[room.receiver_key]
 
 
-async def receiver_actions(user, room):
-    async for message in user.get_websocket():
-        message_dict = json.loads(message)
-        if message_dict["action"] == "update":
-            await update_user_data(room, message_dict)
-
-
-async def emitter_actions(user, room):
-    async for message in user.get_websocket():
-        message_dict = json.loads(message)
-        if message_dict["action"] == "clap":
-            all_users = room.get_all_users()
-            users = [all_users[user_id].get_websocket() for user_id in all_users]
-            websockets.broadcast(users, message)
-        elif message_dict["action"] == "update":
-            await update_user_data(room, message_dict)
-
-
-async def join_receivers(websocket, receiver_key, username, user_id, picture):
-    try:
-        room = ROOMS[receiver_key]
-    except KeyError:
-        await websocket.close()
-        return
-
-    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
-
-    room.add_receiver(receiver_key=receiver_key, user=user)
-    await get_all_users_data(room=room, user=user)
-    try:
-        await receiver_actions(user=user, room=room)
-    finally:
-        await user.get_websocket().close()
-        room.remove_receiver(user=user)
-        """TODO specific call when a single user is removed to the other broadcasters"""
-        await get_all_users_data(room=room, user=user)
-
-
-async def join_emitters(
-    websocket, emitter_key, receiver_key, username, user_id, picture
-):
-    try:
-        room = ROOMS[receiver_key]
-    except KeyError:
-        await websocket.close()
-        return
-
-    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
-
-    room.add_emitter(emitter_key=emitter_key, user=user)
-    await get_all_users_data(room=room, user=user)
-    try:
-        await emitter_actions(
-            user=user,
-            room=room,
-        )
-    finally:
-        await delete_emitter(room, user)
-        """TODO specific call when a single user is removed to the other broadcasters"""
-        await get_all_users_data(room=room, user=user)
-
-
-async def start_clapping_room(websocket, username, user_id, picture):
-    room = Room()
-    user = User(websocket=websocket, username=username, id=user_id, picture=picture)
-    room.add_emitter(emitter_key=room.emitter_key, user=user)
-    ROOMS[room.receiver_key] = room
-
-    await get_all_users_data(room=room, user=user)
-    try:
-        event = {
-            "type": "init",
-            "emitter": room.emitter_key,
-            "receiver": room.receiver_key,
-        }
-        await websocket.send(json.dumps(event))
-        await emitter_actions(
-            user=user,
-            room=room,
-        )
-    finally:
-        await delete_emitter(room, user)
-        """TODO specific call when a single user is removed to the other broadcasters"""
-        await get_all_users_data(room=room, user=user)
-
-
 async def handler(websocket):
     message = await websocket.recv()
     event = json.loads(message)
     assert event["type"] == "init"
 
     if "emitter" in event:
+        try:
+            room = ROOMS[event["receiver"]]
+        except KeyError:
+            await websocket.close()
+            return
+
         await join_emitters(
             websocket=websocket,
+            room=room,
             emitter_key=event["emitter"],
             receiver_key=event["receiver"],
             username=event["username"],
@@ -165,16 +46,27 @@ async def handler(websocket):
             picture=event["picture"],
         )
     if "receiver" in event:
+        try:
+            room = ROOMS[event["receiver"]]
+        except KeyError:
+            await websocket.close()
+            return
+
         await join_receivers(
             websocket=websocket,
+            room=room,
             receiver_key=event["receiver"],
             username=event["username"],
             user_id=event["user_id"],
             picture=event["picture"],
         )
     else:
+        room = Room()
+        ROOMS[room.receiver_key] = room
+
         await start_clapping_room(
             websocket=websocket,
+            room=room,
             username=event["username"],
             user_id=event["user_id"],
             picture=event["picture"],
