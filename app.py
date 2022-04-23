@@ -5,8 +5,8 @@ import json
 
 import websockets
 
-from server.logic.emitter import join_emitters, start_clapping_room
-from server.logic.receiver import join_receivers
+from server.logic.emitter import join_emitters
+from server.logic.receiver import join_receivers, close_receivers_websockets
 from server.model.room import Room
 
 PORT = "PORT"
@@ -15,43 +15,46 @@ DEFAULT_PORT = "8001"
 ROOMS = {}
 
 
-async def maybe_delete_room(room):
-    if not room.get_emitters():
-        receivers = [user.get_websocket() for user in room.get_receivers()]
-        for receiver in receivers:
-            await receiver.close()
-
-        del ROOMS[room.receiver_key]
-
-
 async def handler(websocket):
     message = await websocket.recv()
     event = json.loads(message)
     assert event["type"] == "init"
 
-    if "emitter" in event:
-        try:
-            room = ROOMS[event["receiver"]]
-        except KeyError:
-            await websocket.close()
-            return
+    receiver_key = event.get("receiver")
+    if receiver_key:
+        room = ROOMS[receiver_key]
+    else:
+        room = await create_room(websocket)
+        event["emitter"] = room.get_emitter_key()
 
+    await join_existing_room(websocket=websocket, event=event, room=room)
+
+
+async def create_room(websocket):
+    room = Room()
+    ROOMS[room.receiver_key] = room
+
+    event = {
+        "type": "init",
+        "emitter": room.get_emitter_key(),
+        "receiver": room.get_receiver_key(),
+    }
+    await websocket.send(json.dumps(event))
+    return room
+
+
+async def join_existing_room(websocket, event, room):
+    if "emitter" in event:
         await join_emitters(
             websocket=websocket,
             room=room,
             emitter_key=event["emitter"],
-            receiver_key=event["receiver"],
             username=event["username"],
             user_id=event["user_id"],
             picture=event["picture"],
         )
-    if "receiver" in event:
-        try:
-            room = ROOMS[event["receiver"]]
-        except KeyError:
-            await websocket.close()
-            return
-
+        await maybe_delete_room(room=room)
+    elif "receiver" in event:
         await join_receivers(
             websocket=websocket,
             room=room,
@@ -61,16 +64,13 @@ async def handler(websocket):
             picture=event["picture"],
         )
     else:
-        room = Room()
-        ROOMS[room.receiver_key] = room
+        await websocket.close()
 
-        await start_clapping_room(
-            websocket=websocket,
-            room=room,
-            username=event["username"],
-            user_id=event["user_id"],
-            picture=event["picture"],
-        )
+
+async def maybe_delete_room(room):
+    if not room.get_emitters():
+        await close_receivers_websockets(room)
+        del ROOMS[room.receiver_key]
 
 
 async def main():

@@ -40,3 +40,9 @@ class Room:
 
     def get_receivers(self):
         return self.receivers
+
+    def get_emitter_key(self):
+        return self.emitter_key
+
+    def get_receiver_key(self):
+        return self.receiver_key

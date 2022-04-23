@@ -1,15 +1,12 @@
-""" TODO:
-1) Single socket send the list of all the users to the new user
-2) Broadcast creation of new user to existing ones
-"""
 import json
 
 import websockets
 
-from events import get_all_users_event, get_single_user_update_event
+from events import get_all_users_event
+from events import get_single_user_update_event
 
 
-async def get_all_users_data(room, user):
+async def get_all_users_data(room):
     all_users = room.get_all_users()
 
     event = get_all_users_event(all_users)
@@ -17,7 +14,6 @@ async def get_all_users_data(room, user):
         [user.get_websocket() for user in room.get_all_users().values()],
         json.dumps(event),
     )
-    # await user.get_websocket().send(json.dumps(event))
 
 
 async def update_user_data(room, data):
