@@ -4,16 +4,14 @@ import websockets
 
 from events import get_all_users_event
 from events import get_single_user_update_event
+from events import get_user_disconnected_event
 
 
 async def get_all_users_data(room):
     all_users = room.get_all_users()
 
     event = get_all_users_event(all_users)
-    websockets.broadcast(
-        [user.get_websocket() for user in room.get_all_users().values()],
-        json.dumps(event),
-    )
+    websockets.broadcast(room.get_all_users_websocket(), json.dumps(event))
 
 
 async def update_user_data(room, data):
@@ -26,7 +24,9 @@ async def update_user_data(room, data):
 
     event = get_single_user_update_event(user)
 
-    websockets.broadcast(
-        [user.get_websocket() for user in room.get_all_users().values()],
-        json.dumps(event),
-    )
+    websockets.broadcast(room.get_all_users_websocket(), json.dumps(event))
+
+
+async def user_disconnected(room, user):
+    event = get_user_disconnected_event(user)
+    websockets.broadcast(room.get_all_users_websocket(), json.dumps(event))

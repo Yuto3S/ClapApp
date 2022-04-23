@@ -31,6 +31,9 @@ class Room:
     def get_all_users(self):
         return self.emitters | self.receivers
 
+    def get_all_users_websocket(self):
+        return [user.get_websocket() for user in self.get_all_users().values()]
+
     def get_user(self, user_id):
         all_users = self.get_all_users()
         return all_users.get(user_id)

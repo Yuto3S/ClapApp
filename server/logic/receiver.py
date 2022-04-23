@@ -2,6 +2,7 @@ import json
 
 from server.logic.user import get_all_users_data
 from server.logic.user import update_user_data
+from server.logic.user import user_disconnected
 from server.model.user import User
 
 
@@ -15,9 +16,11 @@ async def join_receivers(websocket, room, receiver_key, username, user_id, pictu
     finally:
         await user.get_websocket().close()
         room.remove_receiver(user=user)
+        await get_all_users_data(room=room)
         # TODO: Broadcast on still present users to let them know user_id has left the room
         # Instead of broadcasting to all users
-        await get_all_users_data(room=room)
+        # TODO: Implement frontend
+        await user_disconnected(room=room, user=user)
 
 
 async def receiver_actions(user, room):
