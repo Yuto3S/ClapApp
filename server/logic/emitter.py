@@ -22,11 +22,6 @@ async def join_emitters(websocket, room, emitter_key, username, user_id, picture
         await remove_user_from_room(room=room, user=user, emitter_key=emitter_key)
 
 
-async def delete_emitter(room, user):
-    await user.get_websocket().close()
-    room.remove_emitter(user=user)
-
-
 async def emitter_actions(user, room):
     async for message in user.get_websocket():
         message_dict = json.loads(message)
