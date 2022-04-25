@@ -11,7 +11,7 @@ ROOM = "room"
 
 def get_init_room_event(room):
     return {
-        "type": INIT,
+        "action": INIT,
         "emitter": room.get_emitter_key(),
         "receiver": room.get_receiver_key(),
     }

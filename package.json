@@ -1,5 +1,6 @@
 {
   "devDependencies": {
     "tailwindcss": "^3.0.24"
-  }
+  },
+  "type": "module"
 }
