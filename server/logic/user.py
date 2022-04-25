@@ -6,6 +6,7 @@ from events import get_all_users_event
 from events import get_notify_existing_users_of_new_user_event
 from events import get_single_user_update_event
 from events import get_user_disconnected_event
+from events import UPDATE
 from server.model.user import User
 
 
@@ -22,7 +23,7 @@ async def add_user_to_room(
 async def remove_user_from_room(room, user, emitter_key=None, receiver_key=None):
     await user.get_websocket().close()
     room.remove_user(user=user, emitter_key=emitter_key, receiver_key=receiver_key)
-    await user_disconnected(room=room, user=user)
+    await notify_all_users_user_disconnected(room=room, user=user)
 
 
 async def get_all_users_data(room, websocket):
@@ -44,7 +45,7 @@ async def notify_existing_users(room, new_user_websocket, new_user):
 
 async def update_user_data(room, data):
     user = room.get_user(data.get("user_id"))
-    match data.get("update"):
+    match data.get(UPDATE):
         case "username":
             user.update_name(data.get("username"))
         case "picture":
@@ -54,6 +55,6 @@ async def update_user_data(room, data):
     websockets.broadcast(room.get_all_users_websocket(), json.dumps(event))
 
 
-async def user_disconnected(room, user):
+async def notify_all_users_user_disconnected(room, user):
     event = get_user_disconnected_event(user)
     websockets.broadcast(room.get_all_users_websocket(), json.dumps(event))

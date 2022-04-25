@@ -1,10 +1,20 @@
 ADD = "add"
 UPDATE = "update"
 DELETE = "delete"
+INIT = "init"
+
 ALL_USERS = "all_users"
 SINGLE_USER = "single_user"
 USER = "user"
 ROOM = "room"
+
+
+def get_init_room_event(room):
+    return {
+        "type": INIT,
+        "emitter": room.get_emitter_key(),
+        "receiver": room.get_receiver_key(),
+    }
 
 
 def get_all_users_event(all_users):

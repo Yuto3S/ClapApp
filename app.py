@@ -5,6 +5,8 @@ import signal
 
 import websockets
 
+from events import get_init_room_event
+from events import INIT
 from server.logic.emitter import join_emitters
 from server.logic.receiver import close_receivers_websockets
 from server.logic.receiver import join_receivers
@@ -19,7 +21,7 @@ ROOMS = {}
 async def handler(websocket):
     message = await websocket.recv()
     event = json.loads(message)
-    assert event["type"] == "init"
+    assert event["type"] == INIT
 
     receiver_key = event.get("receiver")
     if receiver_key:
@@ -35,11 +37,7 @@ async def create_room(websocket):
     room = Room()
     ROOMS[room.receiver_key] = room
 
-    event = {
-        "type": "init",
-        "emitter": room.get_emitter_key(),
-        "receiver": room.get_receiver_key(),
-    }
+    event = get_init_room_event(room=room)
     await websocket.send(json.dumps(event))
     return room
 
