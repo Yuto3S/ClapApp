@@ -1,8 +1,8 @@
 # ClapApp
-ClapApp is a website using websockets to play sounds to all the users connected at the same time in the same session.
+ClapApp was made as a fun website project where users can interact with each other by sharing a link. All the users in the same session can pick a sound from the selection available, and it will play for all the connected users.
 
 # Access
-A live version is running at https://yuto3s.github.io/ClapApp/
+[A live version](https://yuto3s.github.io/ClapApp/) is available. The client is hosted on [GitHub](https://github.com), the websocket server is hosted on [Heroku](https://www.heroku.com).
 
 # Running Locally
 Copy this projet locally, and cd into it.
