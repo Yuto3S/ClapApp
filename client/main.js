@@ -1,17 +1,15 @@
-import { capFirst, encode, generateRandomId, getRandomInt, generateName } from "./js/utils.js";
-import { getWebSocketServer, joinRoom, waitHandleUserActions } from "./js/websocket.js"
+import { capFirst, generateRandomId, getRandomInt, generateName } from "./js/utils.js";
+import { getWebSocketServer, joinRoom, handleWebsocketMessageActions } from "./js/websocket.js"
+import { getUserId } from "./js/user.js"
+import { getInitRoomEvent, getUpdatePictureEvent, getUpdateNameEvent, getPlaySoundEvent } from "./js/events.js"
 
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket(getWebSocketServer());
     generateDefaultUserParameters();
 
     joinRoom(websocket);
-
-    playClappInit(websocket);
-    updateNameInit(websocket)
-    updatePictureInit(websocket);
-
-    waitHandleUserActions(websocket);
+    handleWebsocketMessageActions(websocket);
+    handleUserInteractions(websocket)
 
     websocket.onclose = function(event) {
         document.getElementById("disconnected").classList.remove("hidden");
@@ -19,35 +17,10 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     document.getElementById("receiver").addEventListener("click", ({target}) => {
-        const button = target;
-        const buttonComponent = document.getElementById(button.id);
-        const link = document.getElementById(button.id + "_link").href;
-        navigator.clipboard.writeText(link);
-        buttonComponent.innerHTML = "Copied invitation!";
-
-        const animation = "animate-bounce";
-        buttonComponent.classList.add(animation);
-
-        setTimeout(() => {
-            buttonComponent.innerHTML = "Copy invitation link";
-            buttonComponent.classList.remove(animation);
-        }, 1500);
+        copyRoomLinkToClipboard(target);
     });
-
     document.getElementById("emitter").addEventListener("click", ({target}) => {
-        const button = target;
-        const buttonComponent = document.getElementById(button.id);
-        const link = document.getElementById(button.id + "_link").href;
-        navigator.clipboard.writeText(link);
-        buttonComponent.innerHTML = "Copied invitation!";
-
-        const animation = "animate-bounce";
-        buttonComponent.classList.add(animation);
-
-        setTimeout(() => {
-            buttonComponent.innerHTML = "Copy invitation link";
-            buttonComponent.classList.remove(animation);
-        }, 1500);
+        copyRoomLinkToClipboard(target);
     });
 });
 
@@ -64,38 +37,32 @@ function generateDefaultUserParameters() {
     userNameInput.value = localStorage.getItem("username");
 }
 
+function handleUserInteractions(websocket) {
+    playSoundInitListener(websocket);
+    updateNameInitListener(websocket)
+    updatePictureInitListener(websocket);
+}
 
-function playClappInit(websocket){
+
+function playSoundInitListener(websocket){
     const sounds = document.getElementById('sounds').children;
     for (let sound of sounds) {
         sound.addEventListener("click", ({ target }) => {
-            const event = {
-                action: "clap",
-                sound: target.id,
-            }
+            const event = getPlaySoundEvent(target.id);
             websocket.send(JSON.stringify(event));
         });
     }
 }
 
-function updateNameInit(websocket){
-    var event = {
-        action: "update",
-        update: "username",
-        username: null,
-        user_id: encode(document.getElementById("user_id").value),
-    };
-
+function updateNameInitListener(websocket){
     document.getElementById('username').addEventListener("change", ({ target }) => {
-        event.username = document.getElementById('username').value;
-        localStorage.setItem("username", event.username);
+        const event = getUpdateNameEvent(target.value);
+        localStorage.setItem("username", target.value);
         websocket.send(JSON.stringify(event));
     })
 }
 
-function updatePictureInit(websocket){
-    const profilePicture = document.getElementById("profile_picture");
-    const user_id = document.getElementById("user_id").value;
+function updatePictureInitListener(websocket){
     document.getElementById('profile_picture').addEventListener("change", ({target}) => {
         const newImage = target.files[0];
         if(newImage.size > 1024 * 1024){
@@ -105,16 +72,25 @@ function updatePictureInit(websocket){
             reader.readAsDataURL(newImage);
             reader.onload = function () {
                 localStorage.setItem("picture", reader.result)
-
                 document.getElementById('currentpp').src = reader.result;
-                const event = {
-                    action: "update",
-                    update: "picture",
-                    picture: reader.result,
-                    user_id: encode(user_id),
-                }
+                const event = getUpdatePictureEvent(reader.result)
                 websocket.send(JSON.stringify(event));
             };
         }
     })
 }
+
+function copyRoomLinkToClipboard(button){
+    const buttonComponent = document.getElementById(button.id);
+    const link = document.getElementById(`${button.id}_link`).href;
+    navigator.clipboard.writeText(link);
+    buttonComponent.innerHTML = "Copied invitation!";
+
+    const animation = "animate-bounce";
+    buttonComponent.classList.add(animation);
+
+    setTimeout(() => {
+        buttonComponent.innerHTML = "Copy invitation link";
+        buttonComponent.classList.remove(animation);
+    }, 1500);
+};

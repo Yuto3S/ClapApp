@@ -32,7 +32,7 @@ function disableSoundButtons(){
 }
 
 function updateReceiverLink(event) {
-    document.getElementById("receiver_link").href = "?receiver=" + event.receiver;
+    document.getElementById("receiver_link").href = `?receiver=${event.receiver}`;
 }
 
 export { joinReceiverExistingRoom, updateReceiverLink };

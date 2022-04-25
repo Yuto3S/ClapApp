@@ -8,7 +8,7 @@ function joinEmitterExistingRoom(params, event) {
 };
 
 function updateEmitterLink(event) {
-    document.getElementById("emitter_link").href = "?emitter=" + event.emitter + "&receiver=" + event.receiver;
+    document.getElementById("emitter_link").href = `?emitter=${event.emitter}&receiver=${event.receiver}`;
 }
 
 export { joinEmitterExistingRoom, updateEmitterLink };

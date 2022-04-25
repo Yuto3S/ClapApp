@@ -1,7 +1,7 @@
 import { joinEmitterExistingRoom, updateEmitterLink } from "./emitter.js"
 import { joinReceiverExistingRoom, updateReceiverLink } from "./receiver.js"
-import { encode } from "./utils.js"
-import { clap, deleteUser, updateSingleUser, addNewUser, updateOnlineUsers } from "./user.js";
+import { clap, deleteUser, updateSingleUser, addNewUser, updateOnlineUsers, getUserId } from "./user.js";
+import { getInitRoomEvent } from "./events.js"
 
 function getWebSocketServer(){
     if (window.location.host === "yuto3s.github.io") {
@@ -15,12 +15,7 @@ function getWebSocketServer(){
 
 function joinRoom(websocket) {
     websocket.onopen = function() {
-        const event = {
-            type: "init",
-            username: localStorage.getItem("username"),
-            user_id: encode(document.getElementById("user_id").value),
-            picture: localStorage.getItem("picture") ? localStorage.getItem("picture") : null,
-        }
+        let event = getInitRoomEvent();
 
         const params = new URLSearchParams(window.location.search);
         if (params.has("emitter")) {
@@ -32,7 +27,7 @@ function joinRoom(websocket) {
     };
 }
 
-function waitHandleUserActions(websocket) {
+function handleWebsocketMessageActions(websocket) {
     websocket.onmessage = function(data) {
         const event = JSON.parse(data.data);
         if (event.action == "init") {
@@ -54,4 +49,4 @@ function waitHandleUserActions(websocket) {
     };
 }
 
-export { getWebSocketServer, joinRoom, waitHandleUserActions };
+export { getWebSocketServer, joinRoom, handleWebsocketMessageActions };
