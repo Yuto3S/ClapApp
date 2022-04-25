@@ -1,3 +1,4 @@
+ADD = "add"
 UPDATE = "update"
 DELETE = "delete"
 ALL_USERS = "all_users"
@@ -28,6 +29,16 @@ def get_user_disconnected_event(user):
     return {
         "action": DELETE,
         "delete": USER,
+        "user": {
+            "id": user.get_id(),
+        },
+    }
+
+
+def get_notify_existing_users_of_new_user_event(user):
+    return {
+        "action": ADD,
+        "add": USER,
         "user": get_single_user_format(user),
     }
 

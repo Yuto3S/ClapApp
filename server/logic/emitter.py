@@ -25,6 +25,7 @@ async def join_emitters(websocket, room, emitter_key, username, user_id, picture
 async def emitter_actions(user, room):
     async for message in user.get_websocket():
         message_dict = json.loads(message)
+        # TODO: Stop all sounds button
         if message_dict["action"] == "clap":
             websockets.broadcast(room.get_all_users_websocket(), message)
         elif message_dict["action"] == "update":

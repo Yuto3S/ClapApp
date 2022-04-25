@@ -67,7 +67,7 @@ function updatePictureInit(websocket){
                     action: "update",
                     update: "picture",
                     picture: reader.result,
-                    user_id: user_id,
+                    user_id: Array.from(user_id).reduce((hash, char) => 0 | (31 * hash + char.charCodeAt(0)), 0),
                 }
                 websocket.send(JSON.stringify(event));
             };
@@ -88,6 +88,10 @@ function initWebSocketMessageListeners(websocket) {
             } else if (event.update == "single_user") {
                 updateSingleUser(event.user);
             }
+        } else if (event.action == "delete") {
+            deleteSingleUser(event.user);
+        } else if (event.action == "add") {
+            addNewUser(event.user);
         }
 
         /** Logic used on the first user initiating a new room **/
@@ -98,13 +102,58 @@ function initWebSocketMessageListeners(websocket) {
     };
 }
 
+function addNewUser(user) {
+    const picture = user.picture != undefined ? user.picture : "clap.png";
+    var userElement = document.getElementById(user.id);
+    var online_user_list2 = document.getElementById("online_users_2");
+    console.log("online_user_list2");
+    console.log(online_user_list2);
+
+    const node = document.createElement("div");
+    online_user_list2.appendChild(node);
+    node.outerHTML = `
+        <div id="${user.id}" class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
+            <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+            <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
+        </div>`;
+}
+
 /// TODO: refactor both updateSingleUser & updateOnlineUsers into one
 function updateSingleUser(user) {
     const picture = user.picture != undefined ? user.picture : "clap.png";
-    document.getElementById(user.id).innerHTML = `
-        <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
-        <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
-    `;
+    var userElement = document.getElementById(user.id);
+    console.log("userElement");
+    console.log(userElement);
+//    debugger;
+    if(userElement == null){
+        var online_user_list2 = document.getElementById("online_users_2");
+        console.log("online_user_list2");
+        console.log(online_user_list2);
+
+        const node = document.createElement("div");
+        online_user_list2.appendChild(node);
+        node.outerHTML = `
+            <div id="${user.id}" class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
+                <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+                <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
+            </div>`;
+
+//        const textnode = document.createTextNode("Water");
+//        node.appendChild(textnode);
+//        document.getElementById("myList").appendChild(node);
+//        online_user_list2 += `
+//            <div id="${user.id}" class="bg-sky-800 p-2 max-w-sm rounded-xl mx-auto shadow-lg grid-item flex items-center">
+//                <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+//                <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
+//            </div>`;
+//        `
+    }
+    else {
+        userElement.innerHTML = `
+            <img class="h-16 w-16 object-cover rounded-full" src="${picture}" alt="Current profile photo" />
+            <h3 class="m-2 text-white text-base font-medium tracking-tight">${user.name}</h3>
+        `;
+    }
 }
 
 function updateOnlineUsers(onlineUsers) {
@@ -123,14 +172,29 @@ function updateOnlineUsers(onlineUsers) {
     online_user_list2.innerHTML = result;
 }
 
+function deleteSingleUser(user) {
+    const toDelete = document.getElementById(user.id);
+    console.log("deleting");
+    console.log(toDelete);
+    toDelete.parentNode.removeChild(toDelete);
+}
+
 
 function initWebSocket(websocket) {
     websocket.onopen = function() {
         console.log("open socket");
+
+        const userNameInput = document.getElementById('username');
+
+        if (localStorage.userName == undefined) {
+            localStorage.userName = generateName()
+        }
+        userNameInput.value = localStorage.userName;
+
         const event = {
             type: "init",
-            username: document.getElementById("username").value,
-            user_id: document.getElementById("user_id").value,
+            username: userNameInput.value,
+            user_id: Array.from(document.getElementById("user_id").value).reduce((hash, char) => 0 | (31 * hash + char.charCodeAt(0)), 0),
             picture: localStorage.getItem("picture") ? localStorage.getItem("picture") : null,
         }
 
@@ -185,18 +249,11 @@ function playClappInit(websocket){
 }
 
 function updateNameInit(websocket){
-    const userNameInput = document.getElementById('username');
-
-    if (localStorage.userName == undefined) {
-        localStorage.userName = generateName()
-    }
-    userNameInput.value = localStorage.userName;
-
     var event = {
         action: "update",
         update: "username",
-        username: localStorage.userName,
-        user_id: document.getElementById("user_id").value,
+        username: null,
+        user_id: Array.from(document.getElementById("user_id").value).reduce((hash, char) => 0 | (31 * hash + char.charCodeAt(0)), 0),
     };
 
     document.getElementById('username').addEventListener("change", ({ target }) => {
@@ -204,10 +261,6 @@ function updateNameInit(websocket){
         localStorage.userName = event.username;
         websocket.send(JSON.stringify(event));
     })
-
-    setTimeout(() => {
-        websocket.send(JSON.stringify(event));
-    }, 2000);
 }
 
 function clap(sound){

@@ -23,6 +23,7 @@ async def join_receivers(websocket, room, receiver_key, username, user_id, pictu
 
 async def receiver_actions(user, room):
     async for message in user.get_websocket():
+        # import ipdb; ipdb.set_trace()
         message_dict = json.loads(message)
         if message_dict["action"] == "update":
             await update_user_data(room, message_dict)
