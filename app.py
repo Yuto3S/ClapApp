@@ -5,8 +5,8 @@ import signal
 
 import websockets
 
-from events import get_init_room_event
-from events import INIT
+from server.events import get_init_room_event
+from server.events import INIT
 from server.logic.emitter import join_emitters
 from server.logic.receiver import close_receivers_websockets
 from server.logic.receiver import join_receivers

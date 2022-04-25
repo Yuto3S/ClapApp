@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <title>ClapApp</title>
-        <script type = "text/javascript" src="main.js"></script>
+        <script type = "text/javascript" src="./client/main.js"></script>
         <script language="javascript"  src="https://code.jquery.com/jquery-1.4.2.min.js"></script>
-        <link href="./dist/output.css" rel="stylesheet">
+        <link href="./client/tailwind_main.css" rel="stylesheet">
     </head>
     <body class="bg-sky-900 text-white">
         <div class="m-auto text-center">
@@ -100,7 +100,7 @@
                         sounds.forEach(function(sound){
                             sounds_html += `
                                 <button id="${sound.id}" class="bg-sky-500 hover:bg-sky-700 px-5 py-2 text-sm leading-5 rounded-full font-semibold text-white shadow shadow-slate-800">
-                                    <audio preload="auto" id="${sound.id}_audio" src="./sounds/${sound.id}.mp3"></audio>
+                                    <audio preload="auto" id="${sound.id}_audio" src="./client/assets/sounds/${sound.id}.mp3"></audio>
                                     ${sound.text} ${sound.emoji}
                                 </button>`
                         });

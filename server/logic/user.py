@@ -2,11 +2,11 @@ import json
 
 import websockets
 
-from events import get_all_users_event
-from events import get_notify_existing_users_of_new_user_event
-from events import get_single_user_update_event
-from events import get_user_disconnected_event
-from events import UPDATE
+from server.events import get_all_users_event
+from server.events import get_notify_existing_users_of_new_user_event
+from server.events import get_single_user_update_event
+from server.events import get_user_disconnected_event
+from server.events import UPDATE
 from server.model.user import User
 
 
