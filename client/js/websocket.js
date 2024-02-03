@@ -5,7 +5,7 @@ import { getInitRoomEvent } from "./events.js"
 
 function getWebSocketServer(){
     if (window.location.host === "yuto3s.github.io") {
-        return "wss://yuto3s-clapapp.herokuapp.com";
+        return "wss://clapp-app-backend.onrender.com";
     } else if (window.location.host === "localhost:8000") {
         return "ws://localhost:8001";
     } else {
