@@ -5,7 +5,7 @@ Broadcasters are able to send and read messages, while listeners can only read.
 
 
 # Access
-[A live version](https://yuto3s.github.io/ClapApp/) is available. The client is hosted on [GitHub](https://github.com), the websocket server is hosted on [Heroku](https://www.heroku.com).
+[A live version](https://yuto3s.github.io/ClapApp/) is available. The client is hosted on [GitHub](https://github.com), the websocket server is hosted on [Render](https://render.com).
 # Running Locally
 This project requires `python>=3.10` to run correctly. You can check your local version by using `python --version`.
 
