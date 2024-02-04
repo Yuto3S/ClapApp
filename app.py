@@ -78,7 +78,7 @@ async def main():
     loop.add_signal_handler(sig=signal.SIGTERM, callback=stop.set_result)
 
     port = int(os.environ.get(key=PORT, default=DEFAULT_PORT))
-    print(f"WEBSOCKET SERVER START ON PORT {PORT}")
+    print(f"WEBSOCKET SERVER START ON PORT {port}")
     async with websockets.serve(handler, "", port):
         await stop
 
