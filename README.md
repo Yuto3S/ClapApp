@@ -15,13 +15,13 @@ $ git clone https://github.com/Yuto3S/ClapApp
 $ cd ClapApp
 $ pip install -r requirements.txt
 $ pip install -r requirements-dev.txt
-$ python -m http.server
+$ python3 -m http.server
 ```
 While keeping this open, start a new terminal window and `cd` into the ClapApp repo once again
 ```
-$ python -m app
+$ python3 -m app
 ```
-You can now access https://localhost:8000 to see your local website running, and you can open tabs in multiple browsers using the broadcaster/receiver links to play with the sounds and websockets.
+You can now access http://localhost:8000 to see your local website running, and you can open tabs in multiple browsers using the broadcaster/receiver links to play with the sounds and websockets.
 
 _Optional: in yet another terminal window, you can see the CSS changes by running tailwind: (you might have to install the package)_
 ```

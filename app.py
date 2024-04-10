@@ -21,6 +21,7 @@ ROOMS = {}
 async def handler(websocket):
     message = await websocket.recv()
     event = json.loads(message)
+    print(event)
     assert event["type"] == INIT
 
     receiver_key = event.get("receiver")

@@ -27,6 +27,7 @@ async def emitter_actions(user, room):
         message_dict = json.loads(message)
         # TODO: Stop all sounds button
         if message_dict["action"] == "clap":
+            print(message_dict)
             websockets.broadcast(room.get_all_users_websocket(), message)
         elif message_dict["action"] == "update":
             await update_user_data(room, message_dict)
